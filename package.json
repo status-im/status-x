@@ -2,7 +2,7 @@
   "name": "status-x",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/status-im/status-x/issues"
   },
-  "homepage": "https://github.com/status-im/status-x#readme"
+  "homepage": "https://github.com/status-im/status-x#readme",
+  "dependencies": {
+    "colors": "^1.3.2",
+    "neo-blessed": "^0.2.0",
+    "status-js-api": "^1.0.1"
+  }
 }
