@@ -56,7 +56,7 @@ class UI {
   }
 
   availableChannels(channels) {
-    this.channels.setContent(channels.join('\n'));
+    this.channels.setContent(channels.map((c, i) => `(${i}) ${c}`).join('\n'));
     this.screen.render();
   }
 

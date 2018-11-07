@@ -19,6 +19,6 @@
   "dependencies": {
     "colors": "^1.3.2",
     "neo-blessed": "^0.2.0",
-    "status-js-api": "^1.0.1"
+    "status-js-api": "../status-js"
   }
 }
