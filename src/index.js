@@ -33,8 +33,8 @@ status.joinChat(DEFAULT_CHANNEL, () => {
   ui.availableChannels(channels);
 
   status.onMessage(DEFAULT_CHANNEL, (err, data) => {
-    let msg = JSON.parse(data)[1][0];
-    ui.logEntry(("someone> ").green.underline + msg);
+    let msg = JSON.parse(data.payload)[1][0];
+    ui.logEntry((data.username + ">").green + " " + msg);
   });
 });
 
