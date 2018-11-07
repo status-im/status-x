@@ -22,6 +22,7 @@ class UI {
     this.layoutUsers();
     this.layoutChannels();
     this.layoutCmd();
+    this.layoutState();
 
     this.screen.key(["C-c"], function () {
       process.exit(0);
@@ -74,7 +75,7 @@ class UI {
       label: "Logs",
       padding: 1,
       width: "73%",
-      height: "95%",
+      height: "92%",
       left: "7%",
       top: "0%",
       border: {
@@ -244,6 +245,29 @@ class UI {
     this.input.on('submit', this.submitCmd.bind(this));
 
     this.screen.append(this.consoleBox);
+  }
+
+  layoutState() {
+    this.consoleState = blessed.box({
+      label: '',
+      tags: true,
+      padding: 0,
+      width: '73%',
+      height: '5%',
+      left: '7%',
+      top: '92%',
+      border: {
+        type: 'line'
+      },
+      style: {
+        fg: 'black',
+        border: {
+          fg: this.color
+        }
+      }
+    });
+
+    this.screen.append(this.consoleState);
   }
 
   submitCmd(cmd) {
