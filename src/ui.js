@@ -255,7 +255,7 @@ class UI {
       width: '73%',
       height: '5%',
       left: '7%',
-      top: '92%',
+      top: '90%',
       border: {
         type: 'line'
       },

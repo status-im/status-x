@@ -34,6 +34,17 @@ class Users {
     }
     return userList;
 	}
+
+  updateUsersState() {
+    let currentTime = (new Date().getTime());
+		for (let pubkey in this.users) {
+      let user = this.users[pubkey];
+      if (currentTime - user.lastSeen > 10*1000) {
+        user.online = false;
+      }
+    }
+  }
+
 }
 
 class ChannelManager {

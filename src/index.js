@@ -16,7 +16,7 @@ channels.events.on('channelSwitch', () => {
   ui.logEntry("-------------------");
   ui.logEntry("now viewing #" + channels.getCurrentChannel().name);
   channels.dumpPendingMessages().forEach((message) => {
-		let msg = (message.username + ">").green + " " + message.message;
+  let msg = (message.username + ">").green + " " + message.message;
     ui.logEntry(msg);
   });
 });
@@ -34,9 +34,21 @@ var updateUsers = function() {
   ui.availableUsers(users)
 }
 
+var handleProtocolMessages = function(channelName, data) {
+  // TODO: yes this is ugly, can be moved to the lib level
+ let msg = JSON.parse(JSON.parse(data.payload)[1][0]);
+  let fromUser = data.data.sig;
+
+  if (msg.type === 'ping') {
+    let user = channels.allUsers.addOrUpdateUserKey(fromUser, data.username);
+    let channel = channels.getChannel(channelName);
+    channel.users.addUserOrUpdate(user);
+  channels.events.emit("update");
+ }
+}
+
 channels.events.on('update', updateUsers);
 channels.events.on('channelSwitch', updateUsers);
-
 
 ui.logEntry(`
   Welcome to
@@ -56,6 +68,12 @@ ui.logEntry(`-----------------------------------------------------------`)
 var status = new StatusJS();
 status.connect("ws://localhost:8546");
 
+setInterval(function() {
+  status.sendJsonMessage(channels.getCurrentChannel().name, {type: "ping"});
+
+  channels.allUsers.updateUsersState();
+}, 5 * 1000);
+
 status.joinChat(DEFAULT_CHANNEL, () => {
   ui.logEntry(("Joined #" + DEFAULT_CHANNEL).green.underline)
 
@@ -64,7 +82,11 @@ status.joinChat(DEFAULT_CHANNEL, () => {
   status.onMessage(DEFAULT_CHANNEL, (err, data) => {
     let msg = JSON.parse(data.payload)[1][0];
 
-    channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
+    if (JSON.parse(data.payload)[1][1] === 'content/json') {
+      handleProtocolMessages(DEFAULT_CHANNEL, data);
+    } else {
+      channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
+    }
   });
 });
 
@@ -80,7 +102,11 @@ ui.events.on('cmd', (cmd) => {
       status.onMessage(channelName, (err, data) => {
         let msg = JSON.parse(data.payload)[1][0];
 
-        channels.addMessage(channelName, msg, data.data.sig, data.username)
+        if (JSON.parse(data.payload)[1][1] === 'content/json') {
+          handleProtocolMessages(channelName, data);
+        } else {
+          channels.addMessage(channelName, msg, data.data.sig, data.username)
+        }
       });
 
     })
