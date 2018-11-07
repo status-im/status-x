@@ -8,6 +8,8 @@ var ui = new UI();
 
 var channels = new ChannelManager();
 
+let usersTyping = {};
+
 channels.events.on('update', () => {
   ui.availableChannels(channels.getChannelList());
 });
@@ -43,12 +45,42 @@ var handleProtocolMessages = function(channelName, data) {
     let user = channels.allUsers.addOrUpdateUserKey(fromUser, data.username);
     let channel = channels.getChannel(channelName);
     channel.users.addUserOrUpdate(user);
-  channels.events.emit("update");
+    channels.events.emit("update");
  }
+
+  if (msg.type === 'typing') {
+    usersTyping[fromUser] = (new Date().getTime());
+  }
 }
 
 channels.events.on('update', updateUsers);
 channels.events.on('channelSwitch', updateUsers);
+
+setInterval(function() {
+  let typingUsers = [];
+  let currentTime = (new Date().getTime());
+  for (let pubkey in usersTyping) {
+    let lastTyped = usersTyping[pubkey];
+  if (currentTime - lastTyped > 5*1000 || currentTime < lastTyped) {
+      delete usersTyping[pubkey];
+  } else {
+   if (channels.allUsers.users[pubkey]) {
+     typingUsers.push(channels.allUsers.users[pubkey].username);
+      }
+  }
+  }
+
+ if (typingUsers.length === 0) {
+   ui.consoleState.setContent("");
+  return;
+ }
+  if (typingUsers.length === 1) {
+   ui.consoleState.setContent(typingUsers[0] + " is typing");
+    return;
+  }
+
+ ui.consoleState.setContent(typingUsers.join(', ') + " are typing");
+}, 3*1000);
 
 ui.logEntry(`
   Welcome to
@@ -119,5 +151,10 @@ ui.events.on('cmd', (cmd) => {
   }
 
   status.sendMessage(channels.getCurrentChannel().name, cmd);
-})
+});
+
+ui.events.on('typing', () => {
+  // TODO: use async.cargo instead and/or a to avoid unnecessary requests
+ status.sendJsonMessage(channels.getCurrentChannel().name, {type: "typing"});
+});
 

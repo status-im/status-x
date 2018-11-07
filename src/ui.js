@@ -242,32 +242,46 @@ class UI {
       self.input.focus();
     });
 
+    this.input.key('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), function () {
+      self.events.emit("typing");
+    });
+
     this.input.on('submit', this.submitCmd.bind(this));
 
     this.screen.append(this.consoleBox);
   }
 
   layoutState() {
-    this.consoleState = blessed.box({
-      label: '',
-      tags: true,
-      padding: 0,
+    this.consoleStateContainer = blessed.layout({
       width: '73%',
       height: '5%',
       left: '7%',
       top: '90%',
+      layout: "grid"
+    });
+
+    this.consoleState = blessed.box({
+      parent: this.consoleStateContainer,
+      label: "",
+      tags: true,
+      padding: {
+        left: 1
+      },
+      width: "100%",
+      height: "100%",
+      valign: "middle",
       border: {
-        type: 'line'
+        type: "line"
       },
       style: {
-        fg: 'black',
+        fg: -1,
         border: {
           fg: this.color
         }
       }
     });
 
-    this.screen.append(this.consoleState);
+    this.screen.append(this.consoleStateContainer);
   }
 
   submitCmd(cmd) {
