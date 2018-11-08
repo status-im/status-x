@@ -55,8 +55,10 @@ class ChannelManager {
     this.allUsers = new Users();
   }
 
-  addChannel(channelName) {
-    let channel = {name: channelName, pendingMessages: []};
+  addChannel(channelName, type, extraData) {
+    if(this.getChannel(channelName)) return;
+
+    let channel = {name: channelName, pendingMessages: [], type, ...extraData};
     channel.users = new Users();
     this.channels.push(channel);
     this.events.emit("update");
@@ -99,13 +101,16 @@ class ChannelManager {
 
   getChannelList() {
     return this.channels.map((c) => {
+
+      const prefix = c.type === 'channel' ? '#' : '';
+
       if (c.name === this.channels[this.currentChannel].name) {
-        return `#${c.name}`.green;
+        return `${prefix}${c.name}`.green;
       }
       if (c.pendingMessages.length === 0) {
-        return `#${c.name}`;
+        return `${prefix}${c.name}`;
       }
-      return `#${c.name} (${c.pendingMessages.length})`;
+      return `${prefix}${c.name} (${c.pendingMessages.length})`;
     });
   }
 

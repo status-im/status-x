@@ -92,69 +92,108 @@ ui.logEntry(`
           \\/           \\/                \\/      \\_/
   `)
 
-ui.logEntry(`Generating Identify....`)
-ui.logEntry(`Connecting to Peers....`)
-ui.logEntry(`Rejoining Channels....`)
-ui.logEntry(`-----------------------------------------------------------`)
+ui.logEntry(`Generating Identity....`);
+ui.logEntry(`Connecting to Peers....`);
+ui.logEntry(`Rejoining Channels....`);
 
-var status = new StatusJS();
-status.connect("ws://localhost:8546");
+(async () => {
+  const status = new StatusJS();
+  
+  await status.connect("ws://localhost:8546");
 
-setInterval(function() {
-  status.sendJsonMessage(channels.getCurrentChannel().name, {type: "ping"});
+  ui.logEntry(`PK:  ${await status.getPublicKey()}`);
+  ui.logEntry(`-----------------------------------------------------------`);
 
-  channels.allUsers.updateUsersState();
-}, 5 * 1000);
+  /*
+  const fs = require('fs');
+  fs.writeFile("/tmp/test", await status.getPublicKey(), function(err) {
+      if(err) {
+          return console.log(err);
+      }
+  }); 
+  */
 
-status.joinChat(DEFAULT_CHANNEL, () => {
-  ui.logEntry(("Joined #" + DEFAULT_CHANNEL).green.underline)
+  setInterval(function() {
+    const channel = channels.getCurrentChannel();
+    if(!channel.pubKey){
+      // TODO: JSON message is being displayed in the chat box of status
+      status.sendJsonMessage(channel.name, {type: "ping"});
+      channels.allUsers.updateUsersState();
+    }
+  }, 5 * 1000);
 
-  channels.addChannel(DEFAULT_CHANNEL);
 
-  status.onMessage(DEFAULT_CHANNEL, (err, data) => {
+  status.joinChat(DEFAULT_CHANNEL, () => {
+    ui.logEntry(("Joined #" + DEFAULT_CHANNEL).green.underline)
+
+    channels.addChannel(DEFAULT_CHANNEL, 'channel');
+
+    status.onMessage(DEFAULT_CHANNEL, (err, data) => {
+      let msg = JSON.parse(data.payload)[1][0];
+
+      if (JSON.parse(data.payload)[1][1] === 'content/json') {
+        handleProtocolMessages(DEFAULT_CHANNEL, data);
+      } else {
+        channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
+      }
+    });
+  });
+
+
+  status.onMessage((err, data) => {
+    channels.addChannel(data.username, 'contact', {pubKey: data.data.sig});
     let msg = JSON.parse(data.payload)[1][0];
-
     if (JSON.parse(data.payload)[1][1] === 'content/json') {
-      handleProtocolMessages(DEFAULT_CHANNEL, data);
+      handleProtocolMessages(data.username, data);
     } else {
-      channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
+      channels.addMessage(data.username, msg, data.data.sig, data.username)
+    }
+  })
+
+  ui.events.on('cmd', (cmd) => {
+    if (cmd.split(' ')[0] === '/join') {
+      let channelName = cmd.split(' ')[1].replace('#','');
+      ui.logEntry("joining " + channelName)
+      status.joinChat(channelName).then(() => {
+        ui.logEntry("joined #" + channelName)
+
+        channels.addChannel(channelName, 'channel');
+
+        status.onMessage(channelName, (err, data) => {
+          let msg = JSON.parse(data.payload)[1][0];
+
+          if (JSON.parse(data.payload)[1][1] === 'content/json') {
+            handleProtocolMessages(channelName, data);
+          } else {
+            channels.addMessage(channelName, msg, data.data.sig, data.username)
+          }
+        });
+
+      })
+      return;
+    }
+    if (cmd.split(' ')[0] === '/s') {
+      let channelNumber = cmd.split(' ')[1];
+      channels.switchChannelIndex(parseInt(channelNumber, 10));
+      return;
+    }
+
+    const channel = channels.getCurrentChannel();
+    if(channel.pubKey){
+      status.sendMessage(channel.pubKey, cmd);
+    } else {
+      status.sendMessage(channel.name, cmd);
     }
   });
-});
 
-ui.events.on('cmd', (cmd) => {
-  if (cmd.split(' ')[0] === '/join') {
-    let channelName = cmd.split(' ')[1].replace('#','');
-    ui.logEntry("joining " + channelName)
-    status.joinChat(channelName).then(() => {
-      ui.logEntry("joined #" + channelName)
+  ui.events.on('typing', () => {
+    // TODO: use async.cargo instead and/or a to avoid unnecessary requests
+    const channel = channels.getCurrentChannel();
+    if(!channel.pubKey){
+      // TODO: the json message is being displayed in the UI
+      status.sendJsonMessage(channels.getCurrentChannel().name, {type: "typing"});
+    }
+  });
 
-      channels.addChannel(channelName);
-
-      status.onMessage(channelName, (err, data) => {
-        let msg = JSON.parse(data.payload)[1][0];
-
-        if (JSON.parse(data.payload)[1][1] === 'content/json') {
-          handleProtocolMessages(channelName, data);
-        } else {
-          channels.addMessage(channelName, msg, data.data.sig, data.username)
-        }
-      });
-
-    })
-    return;
-  }
-  if (cmd.split(' ')[0] === '/s') {
-    let channelNumber = cmd.split(' ')[1];
-    channels.switchChannelIndex(parseInt(channelNumber, 10));
-    return;
-  }
-
-  status.sendMessage(channels.getCurrentChannel().name, cmd);
-});
-
-ui.events.on('typing', () => {
-  // TODO: use async.cargo instead and/or a to avoid unnecessary requests
- status.sendJsonMessage(channels.getCurrentChannel().name, {type: "typing"});
-});
+})();
 
