@@ -243,7 +243,7 @@ class UI {
     });
 
     this.input.key('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), function () {
-      self.events.emit("typing");
+      self.events.emit("typing", self.input.value);
     });
 
     this.input.on('submit', this.submitCmd.bind(this));

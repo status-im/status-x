@@ -103,7 +103,7 @@ ui.logEntry(`Rejoining Channels....`);
   await status.connect("ws://localhost:8546");
   const pubKey = await status.getPublicKey();
   const userName = await status.getUserName();
-  
+
   ui.logEntry(`PK:  ${pubKey}`);
   ui.logEntry(`-----------------------------------------------------------`);
 
@@ -112,7 +112,7 @@ ui.logEntry(`Rejoining Channels....`);
       if(err) {
           return console.log(err);
       }
-  }); 
+  });
 
   setInterval(function() {
     const channel = channels.getCurrentChannel();
@@ -187,7 +187,7 @@ ui.logEntry(`Rejoining Channels....`);
         ui.logEntry(`Invalid account`.red);
         return;
       }
-      
+
       // TODO:resolve ens username
       const user = Object.values(channels.allUsers.users).find(x => x.username == destination);
       if(user){
@@ -212,8 +212,9 @@ ui.logEntry(`Rejoining Channels....`);
     }
   });
 
-  ui.events.on('typing', () => {
+  ui.events.on('typing', (currentText) => {
     // TODO: use async.cargo instead and/or a to avoid unnecessary requests
+    if (currentText[0] === '/') return;
     const channel = channels.getCurrentChannel();
     if(!channel.pubKey){
       // TODO: the json message is being displayed in the UI
