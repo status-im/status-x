@@ -74,9 +74,9 @@ class UI {
     this.log = blessed.box({
       label: "Logs",
       padding: 1,
-      width: "73%",
+      width: "68%",
       height: "92%",
-      left: "7%",
+      left: "12%",
       top: "0%",
       border: {
         type: "line"
@@ -152,7 +152,7 @@ class UI {
   layoutChannels() {
 
     this.wrapper = blessed.layout({
-      width: "7%",
+      width: "12%",
       height: "100%",
       top: "0%",
       left: "0%",
@@ -253,10 +253,10 @@ class UI {
 
   layoutState() {
     this.consoleStateContainer = blessed.layout({
-      width: '73%',
+      width: '68%',
       height: '5%',
-      left: '7%',
-      top: '90%',
+      left: '12%',
+      top: '92%',
       layout: "grid"
     });
 
