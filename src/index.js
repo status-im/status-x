@@ -3,6 +3,7 @@ var StatusJS = require('status-js-api');
 var ChannelManager = require('./channelManager.js');
 
 const DEFAULT_CHANNEL = "mytest";
+const CONTACT_CODE_REGEXP = /^(0x)?[0-9a-f]{130}$/i;
 
 var ui = new UI();
 
@@ -176,6 +177,29 @@ ui.logEntry(`Rejoining Channels....`);
     if (cmd.split(' ')[0] === '/s') {
       let channelNumber = cmd.split(' ')[1];
       channels.switchChannelIndex(parseInt(channelNumber, 10));
+      return;
+    }
+
+    if(cmd.split(' ')[0] === '/msg') {
+      let destination = cmd.substr(5);
+
+      if (!(CONTACT_CODE_REGEXP.test(destination) || /^[a-z0-9A-Z\s]{4,}$/.test(destination))) {
+        ui.logEntry(`Invalid account`.red);
+        return;
+      }
+      
+      // TODO:resolve ens username
+      const user = Object.values(channels.allUsers.users).find(x => x.username == destination);
+      if(user){
+        channels.addChannel(user.username, 'contact', {pubKey: user.pubkey});
+        channels.switchChannelIndex(channels.channels.length - 1);
+      } else {
+        status.getUserName(destination).then(username => {
+          channels.addChannel(username, 'contact', {pubKey: destination});
+          channels.switchChannelIndex(channels.channels.length - 1);
+        });
+      }
+
       return;
     }
 
