@@ -98,20 +98,20 @@ ui.logEntry(`Rejoining Channels....`);
 
 (async () => {
   const status = new StatusJS();
-  
-  await status.connect("ws://localhost:8546");
 
-  ui.logEntry(`PK:  ${await status.getPublicKey()}`);
+  await status.connect("ws://localhost:8546");
+  const pubKey = await status.getPublicKey();
+  const userName = await status.getUserName();
+  
+  ui.logEntry(`PK:  ${pubKey}`);
   ui.logEntry(`-----------------------------------------------------------`);
 
-  /*
   const fs = require('fs');
   fs.writeFile("/tmp/test", await status.getPublicKey(), function(err) {
       if(err) {
           return console.log(err);
       }
   }); 
-  */
 
   setInterval(function() {
     const channel = channels.getCurrentChannel();
@@ -146,6 +146,7 @@ ui.logEntry(`Rejoining Channels....`);
     if (JSON.parse(data.payload)[1][1] === 'content/json') {
       handleProtocolMessages(data.username, data);
     } else {
+      ui.logEntry(data.payload);
       channels.addMessage(data.username, msg, data.data.sig, data.username)
     }
   })
@@ -181,6 +182,7 @@ ui.logEntry(`Rejoining Channels....`);
     const channel = channels.getCurrentChannel();
     if(channel.pubKey){
       status.sendMessage(channel.pubKey, cmd);
+      channels.addMessage(channel.name, cmd, pubKey, userName);
     } else {
       status.sendMessage(channel.name, cmd);
     }
