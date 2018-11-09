@@ -1,9 +1,13 @@
+const async = require('async');
+
 var UI = require('./ui.js');
 var StatusJS = require('status-js-api');
 var ChannelManager = require('./channelManager.js');
 
 const DEFAULT_CHANNEL = "mytest";
 const CONTACT_CODE_REGEXP = /^(0x)?[0-9a-f]{130}$/i;
+
+let userPubKey;
 
 var ui = new UI();
 
@@ -33,7 +37,6 @@ var updateUsers = function() {
   let users = channels.getUsersInCurrentChannel().map((x) => {
     return {name: x.username, status: (x.online ? "on" : "offline")}
   });
-  //ui.availableUsers([{name: "iuri", status: "on"}, {name: "rramos", status: "on"}, {name: "barry", status: "on"}, {name: "satoshi", status: "off"}])
   ui.availableUsers(users)
 }
 
@@ -50,6 +53,7 @@ var handleProtocolMessages = function(channelName, data) {
  }
 
   if (msg.type === 'typing') {
+    if (fromUser === userPubKey) return; // ignore typing events from self
     usersTyping[fromUser] = (new Date().getTime());
   }
 }
@@ -62,26 +66,26 @@ setInterval(function() {
   let currentTime = (new Date().getTime());
   for (let pubkey in usersTyping) {
     let lastTyped = usersTyping[pubkey];
-  if (currentTime - lastTyped > 5*1000 || currentTime < lastTyped) {
+    if (currentTime - lastTyped > 3*1000 || currentTime < lastTyped) {
       delete usersTyping[pubkey];
-  } else {
-   if (channels.allUsers.users[pubkey]) {
-     typingUsers.push(channels.allUsers.users[pubkey].username);
+    } else {
+      if (channels.allUsers.users[pubkey]) {
+        typingUsers.push(channels.allUsers.users[pubkey].username);
       }
-  }
+    }
   }
 
- if (typingUsers.length === 0) {
-   ui.consoleState.setContent("");
-  return;
- }
+  if (typingUsers.length === 0) {
+    ui.consoleState.setContent("");
+    return;
+  }
   if (typingUsers.length === 1) {
-   ui.consoleState.setContent(typingUsers[0] + " is typing");
+    ui.consoleState.setContent(typingUsers[0] + " is typing");
     return;
   }
 
- ui.consoleState.setContent(typingUsers.join(', ') + " are typing");
-}, 3*1000);
+  ui.consoleState.setContent(typingUsers.join(', ') + " are typing");
+}, 0.5*1000);
 
 ui.logEntry(`
   Welcome to
@@ -101,17 +105,17 @@ ui.logEntry(`Rejoining Channels....`);
   const status = new StatusJS();
 
   await status.connect("ws://localhost:8546");
-  const pubKey = await status.getPublicKey();
+  userPubKey = await status.getPublicKey();
   const userName = await status.getUserName();
 
-  ui.logEntry(`PK:  ${pubKey}`);
+  ui.logEntry(`PK:  ${userPubKey}`);
   ui.logEntry(`-----------------------------------------------------------`);
 
   const fs = require('fs');
   fs.writeFile("/tmp/test", await status.getPublicKey(), function(err) {
-      if(err) {
-          return console.log(err);
-      }
+    if (err) {
+      return console.log(err);
+    }
   });
 
   setInterval(function() {
@@ -135,6 +139,7 @@ ui.logEntry(`Rejoining Channels....`);
       if (JSON.parse(data.payload)[1][1] === 'content/json') {
         handleProtocolMessages(DEFAULT_CHANNEL, data);
       } else {
+        usersTyping[data.data.sig] = 0 // user is likley no longer typing if a message was received
         channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
       }
     });
@@ -212,13 +217,34 @@ ui.logEntry(`Rejoining Channels....`);
     }
   });
 
+  // keep track of each channel typing sent for throttling purposes
+  let typingNotificationsTimestamp = {
+  }
+
   ui.events.on('typing', (currentText) => {
     // TODO: use async.cargo instead and/or a to avoid unnecessary requests
     if (currentText[0] === '/') return;
     const channel = channels.getCurrentChannel();
     if(!channel.pubKey){
-      // TODO: the json message is being displayed in the UI
-      status.sendJsonMessage(channels.getCurrentChannel().name, {type: "typing"});
+      let channelName = channels.getCurrentChannel().name;
+      if (!typingNotificationsTimestamp[channelName]) {
+        typingNotificationsTimestamp[channelName] = {
+          timeout: 0,
+          lastEvent: 0
+        }
+      }
+      let now = (new Date().getTime());
+
+      clearTimeout(typingNotificationsTimestamp[channelName].timeout);
+      if (typingNotificationsTimestamp[channelName].lastEvent === 0 || now - typingNotificationsTimestamp[channelName].lastEvent > 3*1000) {
+        typingNotificationsTimestamp[channelName].lastEvent = (new Date().getTime());
+        status.sendJsonMessage(channelName, {type: "typing"});
+      }
+
+      typingNotificationsTimestamp[channelName].timeout = setTimeout(function() {
+        typingNotificationsTimestamp[channelName].lastEvent = (new Date().getTime());
+        status.sendJsonMessage(channelName, {type: "typing"});
+      }, 3*1000);
     }
   });
 
