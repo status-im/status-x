@@ -152,7 +152,6 @@ ui.logEntry(`Rejoining Channels....`);
     if (JSON.parse(data.payload)[1][1] === 'content/json') {
       handleProtocolMessages(data.username, data);
     } else {
-      ui.logEntry(data.payload);
       channels.addMessage(data.username, msg, data.data.sig, data.username)
     }
   })
@@ -211,7 +210,7 @@ ui.logEntry(`Rejoining Channels....`);
     const channel = channels.getCurrentChannel();
     if(channel.pubKey){
       status.sendMessage(channel.pubKey, cmd);
-      channels.addMessage(channel.name, cmd, pubKey, userName);
+      channels.addMessage(channel.name, cmd, channel.pubKey, userName);
     } else {
       status.sendMessage(channel.name, cmd);
     }
