@@ -1,6 +1,6 @@
-var UI = require('./ui.js');
 var StatusJS = require('status-js-api');
-var ChannelManager = require('./channelManager.js');
+import UI from './ui';
+import ChannelManager from './channelManager';
 
 const DEFAULT_CHANNEL = "mytest";
 const CONTACT_CODE_REGEXP = /^(0x)?[0-9a-f]{130}$/i;
