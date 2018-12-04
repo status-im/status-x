@@ -3,10 +3,10 @@ import Users from "./users";
 import colors from "colors";
 
 class ChannelManager {
-  private channels: any[];
-  private events: any;
+  public channels: any[];
+  public events: any;
+  public allUsers: Users;
   private currentChannel: number;
-  private allUsers: Users;
 
   constructor() {
     this.channels = [];
@@ -89,4 +89,4 @@ class ChannelManager {
   }
 }
 
-module.exports = ChannelManager;
+export default ChannelManager;

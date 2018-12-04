@@ -3,14 +3,14 @@ const blessed = require("neo-blessed");
 const Events = require("events");
 
 class UI {
-  private events: any;
+  public events: any;
   private color: string;
   private minimal: boolean;
   private screen: any;
   private input: any;
   private consoleBox: any;
   private consoleStateContainer: any;
-  private consoleState: any;
+  public consoleState: any;
   private wrapper: any;
   private users: any;
   private channels: any;
