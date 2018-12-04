@@ -26,6 +26,11 @@ $ yarn run start
 $ yarn run lint
 ````
 
+To run:
+```
+node dist/index.js
+```
+
 `status-x` requires `geth` or `murmur` to be able to connect to Whisper. If using `geth`, you may start it with the following flags.
 
 `geth --testnet --syncmode=light --ws --wsport=8546 --wsaddr=localhost --wsorigins=statusjs --rpc --maxpeers=25 --shh --shh.pow=0.002 --wsapi=eth,web3,net,shh,debug,admin`
