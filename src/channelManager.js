@@ -11,11 +11,11 @@ class User {
 
 class Users {
   constructor() {
-    this.users = {}
+    this.users = {};
   }
 
   addUserOrUpdate(user) {
-    this.users[user.pubkey] = user
+    this.users[user.pubkey] = user;
   }
 
   addOrUpdateUserKey(pubkey, username) {
@@ -27,17 +27,17 @@ class Users {
     return this.users[pubkey];
   }
 
-	getUsers() {
+  getUsers() {
     let userList = [];
-		for (let pubkey in this.users) {
+    for (let pubkey in this.users) {
       userList.push(pubkey);
     }
     return userList;
-	}
+  }
 
   updateUsersState() {
     let currentTime = (new Date().getTime());
-		for (let pubkey in this.users) {
+    for (let pubkey in this.users) {
       let user = this.users[pubkey];
       if (currentTime - user.lastSeen > 10*1000) {
         user.online = false;
@@ -114,14 +114,14 @@ class ChannelManager {
     });
   }
 
-	getUsersInCurrentChannel() {
+  getUsersInCurrentChannel() {
     let channel = this.getCurrentChannel();
     let user_keys = channel.users.getUsers();
-		let users = user_keys.map((pubkey) => {
+    let users = user_keys.map((pubkey) => {
       return this.allUsers.users[pubkey];
-		});
+    });
     return users;
-	}
+  }
 }
 
 module.exports = ChannelManager;

@@ -1,5 +1,3 @@
-const async = require('async');
-
 var UI = require('./ui.js');
 var StatusJS = require('status-js-api');
 var ChannelManager = require('./channelManager.js');
@@ -35,10 +33,10 @@ channels.events.on('newMessage', (channelName, username, message) => {
 
 var updateUsers = function() {
   let users = channels.getUsersInCurrentChannel().map((x) => {
-    return {name: x.username, status: (x.online ? "on" : "offline")}
+    return {name: x.username, status: (x.online ? "on" : "offline")};
   });
-  ui.availableUsers(users)
-}
+  ui.availableUsers(users);
+};
 
 var handleProtocolMessages = function(channelName, data) {
   // TODO: yes this is ugly, can be moved to the lib level
@@ -56,7 +54,7 @@ var handleProtocolMessages = function(channelName, data) {
     if (fromUser === userPubKey) return; // ignore typing events from self
     usersTyping[fromUser] = (new Date().getTime());
   }
-}
+};
 
 channels.events.on('update', updateUsers);
 channels.events.on('channelSwitch', updateUsers);
@@ -95,7 +93,7 @@ ui.logEntry(`
    /        \\|  |  / __ \\|  | |  |  /\\___ \\ /     \\
   /_______  /|__| (____  /__| |____//____  >___/\\  \\
           \\/           \\/                \\/      \\_/
-  `)
+  `);
 
 ui.logEntry(`Generating Identity....`);
 ui.logEntry(`Connecting to Peers....`);
@@ -129,7 +127,7 @@ ui.logEntry(`Rejoining Channels....`);
 
 
   status.joinChat(DEFAULT_CHANNEL, () => {
-    ui.logEntry(("Joined #" + DEFAULT_CHANNEL).green.underline)
+    ui.logEntry(("Joined #" + DEFAULT_CHANNEL).green.underline);
 
     channels.addChannel(DEFAULT_CHANNEL, 'channel');
 
@@ -139,8 +137,8 @@ ui.logEntry(`Rejoining Channels....`);
       if (JSON.parse(data.payload)[1][1] === 'content/json') {
         handleProtocolMessages(DEFAULT_CHANNEL, data);
       } else {
-        usersTyping[data.data.sig] = 0 // user is likley no longer typing if a message was received
-        channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username)
+        usersTyping[data.data.sig] = 0; // user is likley no longer typing if a message was received
+        channels.addMessage(DEFAULT_CHANNEL, msg, data.data.sig, data.username);
       }
     });
   });
@@ -152,16 +150,16 @@ ui.logEntry(`Rejoining Channels....`);
     if (JSON.parse(data.payload)[1][1] === 'content/json') {
       handleProtocolMessages(data.username, data);
     } else {
-      channels.addMessage(data.username, msg, data.data.sig, data.username)
+      channels.addMessage(data.username, msg, data.data.sig, data.username);
     }
-  })
+  });
 
   ui.events.on('cmd', (cmd) => {
     if (cmd.split(' ')[0] === '/join') {
       let channelName = cmd.split(' ')[1].replace('#','');
-      ui.logEntry("joining " + channelName)
+      ui.logEntry("joining " + channelName);
       status.joinChat(channelName).then(() => {
-        ui.logEntry("joined #" + channelName)
+        ui.logEntry("joined #" + channelName);
 
         channels.addChannel(channelName, 'channel');
 
@@ -171,11 +169,11 @@ ui.logEntry(`Rejoining Channels....`);
           if (JSON.parse(data.payload)[1][1] === 'content/json') {
             handleProtocolMessages(channelName, data);
           } else {
-            channels.addMessage(channelName, msg, data.data.sig, data.username)
+            channels.addMessage(channelName, msg, data.data.sig, data.username);
           }
         });
 
-      })
+      });
       return;
     }
     if (cmd.split(' ')[0] === '/s') {
@@ -187,13 +185,13 @@ ui.logEntry(`Rejoining Channels....`);
     if(cmd.split(' ')[0] === '/msg') {
       let destination = cmd.substr(5);
 
-      if (!(CONTACT_CODE_REGEXP.test(destination) || /^[a-z0-9A-Z\s]{4,}$/.test(destination))) {
+      if (!(CONTACT_CODE_REGEXP.test(destination) || (/^[a-z0-9A-Z\s]{4,}$/).test(destination))) {
         ui.logEntry(`Invalid account`.red);
         return;
       }
 
       // TODO:resolve ens username
-      const user = Object.values(channels.allUsers.users).find(x => x.username == destination);
+      const user = Object.values(channels.allUsers.users).find(x => x.username === destination);
       if(user){
         channels.addChannel(user.username, 'contact', {pubKey: user.pubkey});
         channels.switchChannelIndex(channels.channels.length - 1);
@@ -218,7 +216,7 @@ ui.logEntry(`Rejoining Channels....`);
 
   // keep track of each channel typing sent for throttling purposes
   let typingNotificationsTimestamp = {
-  }
+  };
 
   ui.events.on('typing', (currentText) => {
     // TODO: use async.cargo instead and/or a to avoid unnecessary requests
@@ -230,7 +228,7 @@ ui.logEntry(`Rejoining Channels....`);
         typingNotificationsTimestamp[channelName] = {
           timeout: 0,
           lastEvent: 0
-        }
+        };
       }
       let now = (new Date().getTime());
 
