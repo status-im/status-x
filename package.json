@@ -13,8 +13,6 @@
     "build:node": "npm run babel:node",
     "clean": "rimraf dist",
     "lint": "npm-run-all lint:*",
-    "lint:js": "npm-run-all lint:js:*",
-    "lint:js:core": "eslint babel.config.js src/",
     "lint:ts": "tslint -c tslint.json 'src/**/*.ts'",
     "prepublishOnly": "npm-run-all clean build test",
     "test": "npm-run-all lint test:*",
