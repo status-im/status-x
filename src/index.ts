@@ -1,6 +1,8 @@
 import StatusJS from "status-js-api";
 import UI from "./ui";
-import ChannelManager from "./channelManager";
+import ChannelManager from "./status-js-client/channelManager";
+
+import StatusJSClient from "./status-js-client";
 
 const DEFAULT_CHANNEL = "mytest";
 const CONTACT_CODE_REGEXP = /^(0x)?[0-9a-f]{130}$/i;

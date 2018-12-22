@@ -70,13 +70,12 @@ class UI {
   }
 
   public availableChannels(channels: string[]) {
-    this.channels.setContent(channels.map((c, i) => `(${i}) ${c}`).join("\n"));
+    this.channels.setContent(channels.map((c, i) => `(${i+1}) ${c}`).join("\n"));
     this.screen.render();
   }
 
-  // TODO: to remove, might not be used anymore
   private setStatus(status: string) {
-    this.operations.setContent(status);
+    this.consoleState.setContent(status);
     this.screen.render();
   }
 
