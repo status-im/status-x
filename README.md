@@ -11,23 +11,28 @@ Command line chat client for status
 
 ## Install
 clone the repo via git:
-```
-$ git clone https://github.com/status-im/status-x.git
+
+```sh
+git clone https://github.com/status-im/status-x.git
 ```
 And then install the dependencies with `yarn`.
-```
-$ cd status-x
-$ yarn
+
+```sh
+cd status-x
+yarn
 ```
 
 To develop:
-```
-$ yarn run start
-$ yarn run lint
+
+```sh
+yarn run start
+yarn run lint
 ````
 
 To run:
-```
+
+```sh
+yarn build
 node dist/index.js
 ```
 
